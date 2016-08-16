@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Timer</title>
+        <script src="static/jquery.min.js"></script>
+        <script>
+        $(document).ready(function(){
+            var numTimers = 3, body = $('body'), timerTime = 2000;
+            var Timer = function(){
+                var timer = $('<div>').addClass('timer');
+                var self = this;
+
+                this.timeDisplay = $('<div>').addClass('timer-time').appendTo(timer);
+                this.startButton = $('<div>').addClass('timer-start').text('Start').appendTo(timer)
+
+                this.startButton.click(function(){
+                    self.start();
+                });
+                this.reset();
+
+                this.node = timer;
+            };
+
+            var padZeros = function(value){
+                var valueText = value.toString();
+                while (valueText.length < 2) {
+                    valueText = '0' + valueText;
+                }
+                return valueText;
+            };
+
+            var timeDiffToString = function(time){
+                var minutes = Math.floor(time / 60000);
+                var seconds = Math.floor((time - minutes * 60000) / 1000);
+                var hundredthsSeconds = Math.round((time - minutes * 60000 - seconds * 1000) / 10);
+
+                return padZeros(minutes) + ':' + padZeros(seconds) + '.' + padZeros(hundredthsSeconds);
+            };
+
+            Timer.prototype.start = function(){
+                this.reset();
+                this.startTime = Date.now();
+
+                var self = this
+                if (this.state === 0) {
+                    this.state = 1;
+                    requestAnimationFrame(function(){
+                        self.step()
+                    });
+                }
+            };
+
+            Timer.prototype.step = function(){
+                var currentTime = Date.now();
+                var timeRemaining = timerTime - (currentTime - this.startTime);
+                if (timeRemaining <= 0) {
+                    this.state = 2; // Set to time up state
+                    timeRemaining = 0;
+                }
+                this.timeDisplay.text(timeDiffToString(timeRemaining));
+                if (this.state === 1) {
+                    var self = this;
+                    requestAnimationFrame(function(){
+                        self.step();
+                    });
+                }
+                this.switchState();
+            };
+
+            Timer.prototype.switchState = function(){
+                switch (this.state) {
+                    case 0:
+                    this.timeDisplay.removeClass('timer-time-done');
+                    break;
+                    case 1:
+                    this.startButton.text('Boost');
+                    break;
+                    case 2:
+                    this.timeDisplay.addClass('timer-time-done');
+                    break;
+                }
+            };
+
+            Timer.prototype.reset = function(){
+                this.startTime = 0;
+                this.boostTimeElapsed = 0;
+                this.currentBoostTime = 0;
+                this.state = 0;
+                this.isBoosting = false;
+            };
+            for (var i=0; i<numTimers; i++){
+                $('body').append(new Timer().node)
+            }
+        });
+        </script>
+        <style>
+            html, body {
+                width: 100%;
+                height: 100%;
+            }
+            body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                font-family: Arial, Helvetica, sans-serif;
+                box-sizing: border-box;
+            }
+            .timer {
+                width: 33.333333%;
+                height: 100%;
+                text-align: center;
+                display: inline-block;
+                flex-direction: column;
+                background-color: #ff0;
+            }
+            .timer:nth-child(even) {
+                background-color: #ff9;
+            }
+            .timer > div {
+                height: 50%;
+                padding: 15% 0;
+            }
+            .timer-time {
+                font-size: 2.5em;
+            }
+            .timer-time-done {
+                background-color: #f32;
+                color: #fff;
+            }
+            .timer-start {
+                font-size: 2em;
+                color: #fff;
+                background-color: #cc0;
+                text-transform: uppercase;
+            }
+        </style>
+    </head>
+    <body>
+
+    </body>
+</html>
