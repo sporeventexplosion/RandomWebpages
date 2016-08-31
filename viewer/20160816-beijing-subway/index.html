@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Case study on terminal-to-terminal transfer stations and suggestions on operational changes to reduce congestion at Sihui/Sihui East</title>
+        <title>Possible methods of reducing congestion at Sihui/Sihui East with minimal infrastructure modifications</title>
         <style>
             body {
                 margin: 0;
@@ -37,7 +37,7 @@
             section+section {
                 margin-top: 3.5em;
             }
-            section h1 {
+            h1, section h1 {
                 font-size: 1.6em;
             }
             p {
@@ -102,39 +102,119 @@
             }
 
         </style>
+        <script>
+            document.addEventListener('DOMContentLoaded', function(){
+                function indexToLetter(index){
+                    let letters = "abcdefghijklmnopqrstuvwxyz";
+
+                    result = letters[index];
+                    if (result === undefined){
+                        return "(" + index + ")";
+                    }
+                    return result;
+                }
+
+                let spans = document.getElementsByTagName('span');
+
+                // Text ids to serials mapping
+                let idSerials = new Map();
+
+                // Group names to text ids mapping
+                let groupNames = new Map();
+
+                let groupCounter = 0;
+
+
+
+                for (let span of spans){
+                    let {figureName, figureGroup} = span.dataset;
+
+                    // Only process labels
+                    if (typeof figureName !== "undefined"){
+                        let groupName = typeof figureGroup !== "undefined" ? figureGroup : figureName;
+
+                        if (!groupNames.has(groupName)){
+                            let group = [];
+                            group.counter = groupCounter++;
+
+                            groupNames.set(groupName, group);
+                        }
+
+                        let group = groupNames.get(groupName);
+                        group.push(figureName);
+                    }
+
+                }
+
+                // Map group names to serials
+                for (let groupIter of groupNames){
+                    group = groupIter[1];
+                    for (let i=0;i<group.length;i++){
+                        let id = group[i];
+
+                        let serial = (group.counter + 1).toString() + (group.length === 1 ? '' : indexToLetter(i))
+
+                        idSerials.set(id, serial);
+                    }
+                }
+
+                for (let span of spans){
+                    let {figure, figureName} = span.dataset;
+                    let isLabel = typeof figureName !== "undefined";
+
+                    if (!isLabel && !idSerials.has(figure)){
+                        alert('Figure ' + figure + ' does not exist!');
+                    }
+
+                    if (typeof figureName === "undefined"){
+                        figureName = figure;
+                    }
+
+                    let text = "Fig " + idSerials.get(figureName);
+
+                    if (isLabel){
+                        text += ':'
+                    }
+
+                    span.textContent = text;
+                }
+            });
+        </script>
     </head>
     <body>
         <main>
+            <h1>Possible methods of reducing congestion at Sihui/Sihui East with minimal infrastructure modifications</h1>
             <section>
-                <p>Beijing's subway network has expanded significantly since my first attempt to ride all lines in July 2012. On July 22, 2016, I completed my second attempt to ride all new lines and observe the maximum number of subway stations. The process lasted 15 hours 36 minutes (from 5:14 to 20:50), covered a total of 275 stations and 507 kilometers including repetitions, and costed 6 yuan.</p>
-
                 <p>In the past ten years, Beijing's subway network has rapidly developed, with 13 new lines and over 200 stations opening. In this short interval, Beijing's subway has become one of the longest subway systems worldwide. However, the system still lacks sophistication in comparison with some developed subways such as that of Paris or Tokyo.</p>
 
-                <p>For example, many of Tokyo's subway lines have more than two running tracks and therefore can handle a wide variety of express and normal trains, whereas Beijing's subway lines all only have 2 running tracks, making it impossible to implement express trains that only stop at some stations. Beijing's suburban lines also all end in the periphery of the city and passengers continuing to the city center must transfer to connecting lines. This leads to lower efficiency and  unnecessary congestion at transfer stations. In comparison, the subway system of Paris, for instance, has multiple suburban lines that connect directly to the city center.</p>
+                <p>For example, many of Tokyo's subway lines have more than two running tracks and therefore can handle a variety of express and normal trains, as opposed to Beijing's subway lines, which all only have two running tracks, making it impossible to implement express trains that only stop at some stations. Beijing's suburban lines also all end in the periphery of the city and passengers continuing to the city center must transfer to connecting lines. This leads to lower efficiency and  unnecessary congestion at transfer stations. In comparison, the subway system of Paris, for instance, has multiple suburban lines that connect directly to the city center.</p>
 
                 <p>This paper focuses on the design of transfer stations connecting terminals of lines and possible ways to remedy the design flaws of the Sihui and Sihui East stations in particular.</p>
             </section>
 
             <section>
-                <h1>Case study on terminal-to-terminal transfer stations and suggestions on operational changes to reduce congestion at Sihui/Sihui East</h1>
-
                 <p>In Beijing Subway, interchange stations which connect urban lines to suburban "extension" lines must handle heavy transfer traffic, especially in the morning and evening rush hours. Therefore, station design must minimize congestion and ensure transfer efficiency.</p>
 
-                <p>Sihui and Sihui East, a pair of adjacent stations, together form the earliest transfer stations in Beijing that connect the terminals of two lines. These two stations connect Line 1 to Batong line, and were intended to separately house passengers transferring in different directions. Batong Line begins at Sihui, the second-to-last station on the eastbound Line 1, and continues eastward. Passengers transferring to Batong Line were intended to transfer at this station. The same logic is applied, at Sihui East, the second-to-last station on Batong Line when heading westward and the first station on Line 1. Most passengers up to now follow this intended scheme of transferring to Batong Line at Sihui and to Line 1 at Sihui East.</p>
+                <p>Sihui and Sihui East, a pair of adjacent stations, form the first example in Beijing of a terminal-to-terminal transfer station. These two stations connect Line 1 to Batong line, and were intended to separately house passengers transferring in different directions. Batong Line begins at Sihui, the second-to-last station on the eastbound Line 1, and continues eastward. Passengers transferring to Batong Line were intended to transfer at this station. The same logic is applied, at Sihui East, the second-to-last station on Batong Line when heading westward and the first station on Line 1. Most passengers up to now follow this intended scheme of transferring to Batong Line at Sihui and to Line 1 at Sihui East.</p>
 
-                <p>The Sihui station consists of two "island platforms"<sup class="nowrap">note 1</sup> beside each other with both directions of Line 1 on the sides of the northern platform and both directions of Batong Line on the southern platform. Passengers enter the station and transfer between the two lines through an upstairs hall. (see Fig. 1a). Sihui East's platform layout resembles two "side platform"<sup class="nowrap">note 2</sup> stations placed next to each other, forming a wide island platform in the center. Line 1 is located on the northern side, with its westbound track located beside the north-most side platform and its eastbound track on the north side of the center island platform. Batong line has an identical layout on the south side of the station, with its westbound tracks on the south side of the center platform and east-bound tracks to the north of the south-most side platform. Similar to Sihui, passengers enter, exit, and transfer between the two lines through an upstairs hall connected to the platform by stairs.</p>
+                <p>The Sihui station consists of two island platforms beside each other with both directions of Line 1 on the sides of the northern platform and both directions of Batong Line on the southern platform. Passengers enter the station and transfer between the two lines through an upstairs hall. (see <span data-figure="sihui-east-current"></span>). Sihui East's platform layout resembles two side platform stations placed next to each other, forming a wide island platform in the center. Line 1 is located on the northern side, with its westbound track located beside the north-most side platform and its eastbound track on the north side of the center island platform. Batong Line has an identical layout on the south side of the station, with its westbound tracks on the south side of the center platform and east-bound tracks to the north of the south-most side platform. Similar to Sihui, passengers enter, exit, and transfer between the two lines through an upstairs hall connected to the platform by stairs.</p>
+
+                <figure class="fig-full">
+                    <img src="images/SVG/switching.svg" alt="">
+                    <figcaption><span data-figure-name="sihui-sihuieast-track"></span> Track layout between Sihui and Sihui East showing switches and tracks connected to the Sihui maintenance area (image not to scale)</figcaption>
+                </figure>
 
                 <figure class="fig-md">
                     <img src="images/PNG/Sihui%20Diagram.png" alt="Current layout at Sihui East">
-                    <figcaption>Fig. 1a: Current layout at Sihui station (Image for illustrative purposes only and does not reflect actual layout of the entire station)</figcaption>
+                    <figcaption><span data-figure-name="sihui-current" data-figure-group="station-current"></span> Current layout at Sihui station (Image for illustrative purposes only and does not reflect actual layout of the entire station)</figcaption>
                 </figure>
 
                 <figure class="fig-md">
                     <img src="images/PNG/Sihui%20East%20Diagram.png" alt="Current layout at Sihui">
-                    <figcaption>Fig. 1b: Current layout at Sihui East station (Image for illustrative purposes only and does not reflect actual layout of the entire station)</figcaption>
+                    <figcaption><span data-figure-name="sihui-east-current" data-figure-group="station-current"></span> Current layout at Sihui East station (Image for illustrative purposes only and does not reflect actual layout of the entire station)</figcaption>
                 </figure>
 
-                <p>The transfer layout of these two stations were likely sufficient to handle passenger loads when the Batong line opened in 2003, but as ridership volumes rapidly grew in the following years, its design flaws have become more apparent. Since passengers generally transfer to the other line heading in the same direction (eastbound Line 1 to eastbound Batong Line when heading east, and the opposite way when heading west), they must first take the stairs to the upstairs hall and then descend to the opposing platform. At peak hours, up to a thousand of passengers perform this transfer for each arriving train, and large volumes of passengers who enter and exit at these two stations further complicate the situation. The station employs a complex network of barriers in the upstairs hall in attempt to regulate the flow of passengers entering, exiting, and transferring through the hall, but due to limitations imposed by the unmodifiable layout of the hall, these barriers have little effect in reducing congestion.</p>
+                <p>The transfer layout of these two stations were likely sufficient to handle passenger loads when the Batong line opened in 2003, but as ridership volumes rapidly grew in the following years, its design flaws have become more apparent. Since most passengers transfer to the other line heading in the same direction (eastbound Line 1 to eastbound Batong Line when heading east, and westbound Batong Line to westbound Line 1 when heading west), they must first take the stairs to the upstairs hall and then descend to the opposing platform. At peak hours, up to a thousand of passengers perform this transfer for each arriving train, and large volumes of passengers who enter and exit at these two stations further complicate the situation. The station employs a complex network of barriers in the upstairs hall in attempt to regulate the flow of passengers entering, exiting, and transferring through the hall, but due to limitations imposed by the unmodifiable layout of the hall, these barriers show limited in reducing congestion.</p>
             </section>
             <section>
                 <h2>Solutions used by other terminal-to-terminal stations</h2>
@@ -143,20 +223,22 @@
 
                 <figure class="fig-md">
                     <img src="images/PNG/Guogongzhuang%20Diagram.png" alt="Transfer layout at Guogongzhuang">
-                    <figcaption>Fig. 2: Same-platform transfer layout at Guogongzhuang (Image for illustrative purposes only and does not reflect actual layout of the entire station)</figcaption>
+                    <figcaption><span data-figure-name="guogongzhuang-layout"></span> Same-platform transfer layout at Guogongzhuang (Image for illustrative purposes only and does not reflect actual layout of the entire station)</figcaption>
                 </figure>
 
-                <p>The Zhuxinzhuang station (see Fig. 3), which connects the northern terminus of Line 8 to Changping Line, is another example of the "same-platform transfer" layout. Similar to Guogongzhuang, Line 8 is located between the two island platforms and Changping line located on the outer sides. Passengers transfer directly from Line 8 to northbound Changping Line, and from southboun dChangping line to Line 8. Despite not being a station connecting two terminals, the same-platform transfer approach can be used at Zhuxinzhuang because most people transfer from northbound Line 8 to northbound Changping Line, and from southbound Changping Line to southbound Line 8. Very few people are likely to transfer from northbound Changping Line to southbound Line 8, which justifies the use of same-platform transfers. The same-platform transfer strategy only works for non terminal-to-terminal stations when nearly all passengers are transferring in a single direction.</p>
+                <p>The Zhuxinzhuang station (see <span data-figure="zhuxinzhuang-layout"></span>), which connects the northern terminus of Line 8 to Changping Line, is another example of the "same-platform transfer" layout. Similar to Guogongzhuang, Line 8 is located between the two island platforms and Changping line located on the outer sides. Passengers transfer directly from Line 8 to northbound Changping Line, and from southboun dChangping line to Line 8. Despite not being a station connecting two terminals, the same-platform transfer approach can be used at Zhuxinzhuang because most people transfer from northbound Line 8 to northbound Changping Line, and from southbound Changping Line to southbound Line 8. Very few people are likely to transfer from northbound Changping Line to southbound Line 8, which justifies the use of same-platform transfers. The same-platform transfer strategy only works for non terminal-to-terminal stations when nearly all passengers are transferring in a single direction.</p>
 
                 <figure class="fig-md">
                     <img src="images/PNG/Zhuxinzhuang%20Diagram.png" alt="Transfer layout at Zhuxinzhuang">
-                    <figcaption>Fig. 3: Same-platform transfer layout at Zhuxinzhuang (Image for illustrative purposes only and does not reflect actual layout of the entire station)</figcaption>
+                    <figcaption><span data-figure-name="zhuxinzhuang-layout"></span> Same-platform transfer layout at Zhuxinzhuang (Image for illustrative purposes only and does not reflect actual layout of the entire station)</figcaption>
                 </figure>
+
+                <p></p>
             </section>
             <section>
-                <h2>Suggestions on operational modifications for reducing transfer congestion at Sihui and Sihui East</h2>
+                <h2>Current impossibility of relying on purely operational modifications for significantly reducing transfer congestion</h2>
 
-                <p>Though dual island platforms for same-platform transfers at the ends of two lines may be an optimal layout, adapting this design to older stations such as Sihui/Sihui East and Songjiazhuang (not elaborated here) can present some difficulties. At these stations, converting the existing layout to one similar to Zhangguozhuang or Zhuxinzhuang may necessitate prohibitive service interruptions of months or more, or such modifications may not be possible due to local geological conditions. In these cases, software modifications to track switching and train dispatch scheduling may to some extent lessen passenger congestion.</p>
+                <p>Though dual island platforms for same-platform transfers at Sihui/Sihui East may be an optimal layout, adapting Sihui/Sihui East to a similar layout present many difficulties. Converting their current layouts to one similar to Zhangguozhuang or Zhuxinzhuang requires major changes to the station structure and rail layout, and thus necessitates prohibitive service interruptions of months or more, or such modifications may not be possible due to local geological conditions. In these cases, operational modifications on track switching and train dispatch scheduling may result in effects similar to a dedicated same-platform transfer station and thus to some extent lessen congestion.</p>
 
                 <h3>Proposed transfer process</h3>
 
@@ -168,26 +250,26 @@
 
                 <p>For the reasons given in note 3, the only remaining option for implementing a (partial) same-platform transfer scheme is to modify track switching to enable same-platform transfers at Sihui East. However, since there is only one island platform at Sihui East, same-platform transfers can only be implemented in one direction at any given time.</p>
 
-                <p>This problem is somewhat simplified by the fact that the majority of passengers at Sihui East are transferring in the same direction at any given time. (westbound into the city center in the mornings, and eastbound to the suburbs in the evenings). Because of this pattern of passenger flow, the station can arrange west-bound trains to use the center platform in the morning and east-bound trains to use it in the evenings. In the mornings, when people are heading into the city, the tracks of Line 1 between Sihui and Sihui East can be switched to the configuration shown in Fig. 4a so that its running side is inverted at Sihui East, and passengers can therefore transfer across the platform from westbound Batong Line directly to Line 1 without accessing the upper hall. In the afternoon, the running sides of Line 1 can be resumed and that of Batong Line can be inverted before entering Sihui East from the east. This produces the layout shown in Fig. 4b, and passengers can now directly transfer from the eastbound Line 1 trains on the north side of the island platform to eastbound Batong Line on the south side. Passengers transferring in the less crowded direction will still have to use stairs. Due to the lack of appropriate switches between Sihui and Sihui East on Batong Line, this scheme causes the small problem that the trains of this line thus cannot switch sides between these two stations and the platforms used by Batong Line at Sihui will have to be inverted as well when Batong Line swaps sides at Sihui East in the afternoon.</p>
+                <p>This problem is somewhat simplified by the fact that the majority of passengers at Sihui East are transferring in the same direction at any given time. (westbound into the city center in the mornings, and eastbound to the suburbs in the evenings). Because of this pattern of passenger flow, the station can arrange west-bound trains to use the center platform in the morning and east-bound trains to use it in the evenings. In the mornings, when people are heading into the city, the tracks of Line 1 between Sihui and Sihui East can be switched to the configuration shown in <span data-figure="switching-proposed-morning"></span> so that its running side is inverted at Sihui East, and passengers can therefore transfer across the platform from westbound Batong Line directly to Line 1 without accessing the upper hall. In the afternoon, the running sides of Line 1 can be resumed and that of Batong Line can be inverted before entering Sihui East from the east. This produces the layout shown in <span data-figure="switching-proposed-afternoon"></span>, and passengers can now directly transfer from the eastbound Line 1 trains on the north side of the island platform to eastbound Batong Line on the south side. Passengers transferring in the less crowded direction will still have to use stairs. Due to the lack of appropriate switches between Sihui and Sihui East on Batong Line, this scheme causes the small problem that the trains of this line thus cannot switch sides between these two stations and the platforms used by Batong Line at Sihui will have to be inverted as well when Batong Line swaps sides at Sihui East in the afternoon.</p>
 
                 <figure class="fig-lg">
                     <img src="images/PNG/Track%20Switching%20-%20Morning.png" alt="Proposed track switching layout between Sihui and Sihui East, morning">
-                    <figcaption>Fig. 4a: Proposed track switching layout between Sihui and Sihui East in the morning (Image for illustrative purposes only. Actual track layout may differ). Line 1 is located on the left and Batong Line on the right. Blue represents eastbound and pink represents westbound.</figcaption>
+                    <figcaption><span data-figure-name="switching-proposed-morning" data-figure-group="switching-proposed"></span> Proposed track switching layout between Sihui and Sihui East in the morning (Image for illustrative purposes only. Actual track layout may differ). Line 1 is located on the left and Batong Line on the right. Blue represents eastbound and pink represents westbound.</figcaption>
                 </figure>
 
                 <figure  class="fig-lg">
                     <img src="images/PNG/Track%20Switching%20-%20Afternoon.png" alt="Proposed track switching layout between Sihui and Sihui East, afternoon">
-                    <figcaption>Fig. 4b: Proposed track switching layout between Sihui and Sihui East in the afternoon (Image for illustrative purposes only. Actual track layout may differ)</figcaption>
+                    <figcaption><span data-figure-name="switching-proposed-afternoon" data-figure-group="switching-proposed"></span> Proposed track switching layout between Sihui and Sihui East in the afternoon (Image for illustrative purposes only. Actual track layout may differ)</figcaption>
                 </figure>
 
                 <figure class="fig-md">
                     <img src="images/PNG/Sihui%20East%20Morning.png" alt="Proposed transfer scheme at Sihui East, morning" class="img-md">
-                    <figcaption>Fig. 5a: Proposed transfer scheme at Sihui East in the morning (Image for illustrative purposes only)</figcaption>
+                    <figcaption><span data-figure-name="sihui-east-proposed-morning" data-figure-group="sihui-east-proposed"></span> Proposed transfer scheme at Sihui East in the morning (Image for illustrative purposes only)</figcaption>
                 </figure>
 
                 <figure class="fig-md">
                     <img src="images/PNG/Sihui%20East%20Afternoon.png" alt="Proposed transfer scheme at Sihui East, afternoon" class="img-md">
-                    <figcaption>Fig. 5b: Proposed transfer scheme at Sihui East in the afternoon (Image for illustrative purposes only)</figcaption>
+                    <figcaption><span data-figure-name="sihui-east-proposed-afternoon" data-figure-group="sihui-east-proposed"></span> Proposed transfer scheme at Sihui East in the afternoon (Image for illustrative purposes only)</figcaption>
                 </figure>
 
                 <p>However, since this method is based on using existing infrastructure in an originally unintended manner, it comes with some difficult-to-avoid disadvantages. The first is caused by psychological patterns present in many passengers. Passengers generally prefer to board an empty train with free seats rather than a full train. In the afternoon, when the train heads out from Sihui to the proposed same-platform transfer station at Sihui East, it will likely already contain some passengers entering from the Sihui station. Thus, passengers from Line 1 may choose to transfer to Batong Line at Sihui so they can board an empty train with free seats. This partially defeats the purpose of creating a same-platform transfer scheme at Sihui East. One possible solution is to cut Batong Line service at Sihui East in the afternoons, but I believe this arrangement brings more disadvantages than benefits. Sihui, in addition to being a transfer station connected to Line 1, also connects to a large bus transit hub with many routes covering a large area. Many of the passengers heading west into the city may be disembarking Batong Line at Sihui to board buses at this transport hub, and arriving passengers at this transport hub may want to head east via Batong Line as well. Additionally, there are no switches between Sihui and Sihui East that facilitate direction reversal, so even if Sihui is not served by Batong Line, trains will still have to arrive at Sihui to reverse directions.</p>
@@ -195,13 +277,13 @@
                 <p>This is my preliminary suggestion for improving transfer efficiency at the Sihui and Sihui East stations by taking advantage of the current track layout (track layout inferred from observations throughout this document and actual feasibility requires further investigation). This method requires operational changes only  and thus does not require service interruptions at the Sihui and Sihui East stations.</p>
             </section>
             <footer>
-                <p>note 1<strong> Island platform station</strong>: A station where the two running tracks are located to the sides of a central platform shared by trains running on both sides.</p>
+                <p>note 1<strong> Island platform station</strong> A station where the two running tracks are located to the sides of a central platform shared by trains running on both sides.</p>
 
-                <p>note 2<strong> Side platform station</strong>: A station where the two running tracks are located between two separate platforms for the two directions.</p>
+                <p>note 2<strong> Side platform station</strong> A station where the two running tracks are located between two separate platforms for the two directions.</p>
 
-                <p>note 3<strong> Why track layout makes it very difficult to convert Sihui into a same-platform transfer station</strong>:</p>
+                <p>note 3<strong> Why track layout makes it very difficult to convert Sihui into a same-platform transfer station</strong></p>
 
-                <p>To convert Sihui into a same-platform transfer station, each of the two platforms must host trains of both Line 1 and Batong Line going in the same direction. This means Line 1 will need trains running on one side of the south platform (currently exclusively used by Batong Line), and Batong Line will need trains running on one side of the north platform (currently exclusively used by Line 1). For Batong Line to perform its direction reversal west of Sihui, its trains need to travel from one of the two south side rails to one of the two north side rails by means of switches. However, no switching mechanism connected to Line 1 tracks exists on Batong Line's direction reversal track to the west of Sihui, and since this track is currently quite short and Line 1 goes underground shortly after exiting Sihui from the west side, it may be infeasible to implement a set of switches in this position that allows the direction reversal of Batong Line from/to the north side tracks currently used by Line 1. A similar situation exists past Sihui East for the direction reversal of Line 1. Due to the presence of only a single switching mechanism connecting the northern Line 1 track and the southern Batong Line track between Sihui and Sihui east, it is impossible to resume the "normal" running sides of either Line 1 or Batong Line in this interval. This necessitates a direction reversal procedure to the east of Sihui East that allows Line 1 trains to travel between Line 1 tracks and Batong tracks and Batong Line trains on the north side to resume Batong Line's running tracks on the south side. Even though a bidirectional switching setup is present on Batong Line eastward of Sihui East, it does not connect to the Line 1 direction reversal tracks on the north side. After exiting the east side of Sihui East, Batong Line passes under a bridge and then shortly continues onto a raised viaduct, making it difficult to set up additional switches between the two lines in this location. Thus, regardless of which track is used by Line 1 or by Batong Line, converting Sihui to a same-platform transfer station requires extensive modifications to not only tracks, but also surrounding infrastructure to permit necessary track modifications. With the current limitations, none of this can be executed in a reasonably non-disruptive manner.</p>
+                <p>To convert Sihui into a same-platform transfer station, each of the two platforms must host trains of both Line 1 and Batong Line going in the same direction. This means Line 1 will need trains running on one side of the south platform (currently exclusively used by Batong Line), and Batong Line will need trains running on one side of the north platform (currently exclusively used by Line 1). For Batong Line to perform its direction reversal west of Sihui, its trains need to travel from one of the two south side rails to one of the two north side rails by means of switches. However, no switching mechanism connected to Line 1 tracks exists on Batong Line's direction reversal track to the west of Sihui, and since this track is currently quite short and Line 1 goes underground shortly after exiting Sihui from the west side, it may be infeasible to implement a set of switches in this position that allows the direction reversal of Batong Line from/to the north side tracks currently used by Line 1. A similar situation exists past Sihui East for the direction reversal of Line 1. Due to the presence of only a single switching mechanism connecting the northern Line 1 track and the southern Batong Line track between Sihui and Sihui east, it is impossible to resume the "normal" running sides of either Line 1 or Batong Line in this interval. This necessitates a direction reversal procedure to the east of Sihui East that allows Line 1 trains to travel between Line 1 tracks and Batong tracks and Batong Line trains on the north side to resume Batong Line's running tracks on the south side. Even though a bidirectional switching setup is present on Batong Line eastward of Sihui East, it does not connect to the Line 1 direction reversal tracks on the north side. After exiting the east side of Sihui East, Batong Line passes under a bridge and then shortly continues onto a raised viaduct, making it difficult to set up additional switches between the two lines in this location. Thus, regardless of which track is used by Line 1 or by Batong Line, converting Sihui to a same-platform transfer station requires extensive modifications to not only tracks, but also surrounding infrastructure to permit necessary track modifications. With the current limitations, none of this can be executed in a suitably non-disruptive manner.</p>
             </footer>
         </main>
     </body>
