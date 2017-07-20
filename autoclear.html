@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>autoclear</title>
+  </head>
+  <body>
+    <p>Everything entered in the textarea below will be cleared every 500 milliseconds</P>
+    <textarea id="t"></textarea>
+    <script>
+      (function() {
+        var t = document.getElementById('t');
+        setInterval(function() {
+          t.value = "";
+        }, 500);
+      }());
+    </script>
+  </body>
+</html>
