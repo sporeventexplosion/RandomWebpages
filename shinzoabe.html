@@ -1,3 +1,67 @@
-<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, minimum-scale=0.1"><title>JAPAN!!!</title>
-<style>@keyframes gr{0%{height:100%}50%{height: 500%}100%{height:100%}} @keyframes gs{0%{-webkit-filter:hue-rotate(180deg);}25%{-webkit-filter:hue-rotate(270deg);}50%{-webkit-filter:hue-rotate(0deg);}75%{-webkit-filter:hue-rotate(90deg);}100%{-webkit-filter:hue-rotate(180deg);}}</style></head>
-<body onclick="alert('derp')" style="overflow: hidden;margin: 0px;"><img alt="Shinzo Abe" style="animation:gr 2s infinite linear,gs 1.362759s infinite linear;width: 100%;" src="https://upload.wikimedia.org/wikipedia/commons/e/e9/Shinz%C5%8D_Abe_April_2015.jpg" width="650" height="1000"></body></html>
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, minimum-scale=0.1">
+    <title>JAPAN!!!</title>
+    <style>
+      @keyframes stretch {
+        0% {
+            transform: scale(1,1);
+        }
+        50% {
+            transform: translate(0, 200%) scale(1,5);
+        }
+        100% {
+            transform: scale(1,1);
+        }
+      }
+
+      @keyframes hueshift {
+        0% {
+            filter: hue-rotate(180deg);
+            -webkit-filter: hue-rotate(180deg);
+        }
+        25% {
+            filter: hue-rotate(270deg);
+            -webkit-filter: hue-rotate(270deg);
+        }
+        50% {
+            filter: hue-rotate(0deg);
+            -webkit-filter: hue-rotate(0deg);
+        }
+        75% {
+            filter: hue-rotate(90deg);
+            -webkit-filter: hue-rotate(90deg);
+        }
+        100% {
+            filter: hue-rotate(180deg);
+            -webkit-filter: hue-rotate(180deg);
+        }
+      }
+
+      body {
+        overflow: hidden;
+        margin: 0;
+      }
+      .shinzo {
+        /* The period of hueshift is chosen in such a way that it does not
+          coincide with that of the stretching effect */
+        animation: stretch 2s infinite linear, hueshift 1.36592507s infinite linear;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        will-change: filter, transform;
+      }
+    </style>
+  </head>
+  <body>
+    <img class="shinzo" alt="Shinzo Abe" src="https://upload.wikimedia.org/wikipedia/commons/e/e9/Shinz%C5%8D_Abe_April_2015.jpg" width="650" height="1000">
+    <script>
+      document.getElementsByTagName('body')[0]
+        .addEventListener('click', function(){
+          alert('derp');
+        });
+    </script>
+  </body>
+</html>
