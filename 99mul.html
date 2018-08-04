@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>99 Multiplier</title>
+    <style>
+      body {
+        font-size: 2em;
+      }
+      input, button {
+        font-size: 1em;
+      }
+      p {
+        min-height: 1.5em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="question"></h1>
+    <div>
+      <input type="text" id="ans">
+      <button id="submit">检查答案</button>
+      <button id="reset">重置</button>
+    </div>
+    <p id="check"></p>
+    <p id="stats"></p>
+    <script>
+      function mobiletest() {
+        var testExp = new RegExp('Android|webOS|iPhone|iPad|' +
+          'BlackBerry|Windows Phone|' +
+          'Opera Mini|IEMobile|Mobile' ,
+          'i');
+        return testExp.test(navigator.userAgent);
+      }
+
+      function ge(name) {
+        return document.getElementById(name);
+      }
+
+      function text(el, t) {
+        el.textContent = t;
+      }
+
+      function randint(min, max) {
+        return Math.floor(min + Math.random() * (max - min));
+      }
+
+      function emptyStats() {
+        return  {
+          num: 0,
+          correct: 0,
+          streak: 0,
+          maxstreak: 0,
+          times: []
+        };
+      }
+
+      function genQuestion() {
+        var a = randint(1, 10);
+        var b = randint(1, 10);
+
+        // if (Math.random() >= 0.5) {
+        //   var x = b;
+        //   b = a;
+        //   a = x;
+        // }
+
+        return {
+          q: `${a} \u00d7 ${b} =`,
+          a: a * b,
+          attempted: false,
+          correct: true,
+          start: Date.now()
+        };
+      }
+
+      var $question = ge('question');
+
+      var $ans = ge('ans');
+      var $submit = ge('submit');
+      var $reset = ge('reset');
+
+      var $check = ge('check');
+      var $stats = ge('stats');
+
+      if (mobiletest()) {
+        $ans.type = 'number';
+      }
+
+      var q = genQuestion();
+
+      var stats = emptyStats();
+
+      function mean(x) {
+        var sum = 0;
+        for (var i = 0; i < x.length; i++) {
+          sum += x[i];
+        }
+        return sum / x.length;
+      }
+
+      function stddev(x) {
+        var m = mean(x);
+
+        var cs = 0;
+        for (var i = 0; i < x.length; i++) {
+          cs += (x[i] - m) * (x[i] - m);
+        }
+        return Math.sqrt(cs / x.length);
+      }
+
+      function render() {
+        text($question, q.q);
+        text($stats, `共回答${stats.num}题，正确${stats.correct}题，当前连续正确${stats.streak}题，最多连续正确${stats.maxstreak}题${stats.num > 0 ? `，平均用时${(mean(stats.times) / 1000).toFixed(2)}秒，标准差${(stddev(stats.times) / 1000).toFixed(3)}秒`: ''}`);
+      }
+
+      render();
+
+      function checkAnswer() {
+        if (!q) {
+          q = genQuestion();
+          render();
+          return;
+        }
+        if (parseFloat($ans.value.trim()) === q.a) {
+          stats.num++;
+          stats.times.push(Date.now() - q.start);
+          if (q.correct) {
+            stats.correct++;
+            stats.streak++;
+            if (stats.streak > stats.maxstreak) {
+              stats.maxstreak = stats.streak;
+            }
+          }
+          text($check, '正确');
+          q = genQuestion();
+          render();
+          $ans.value = '';
+          return;
+        }
+        else if ($ans.value.trim() !== '') {
+          q.correct = false;
+          text($check, '不正确');
+          stats.streak = 0;
+        }
+      }
+
+      function reset() {
+        stats = emptyStats();
+        text($check, '');
+        q = genQuestion();
+        render();
+        $ans.focus();
+      }
+
+      $submit.addEventListener('click', function() {
+        checkAnswer();
+        $ans.focus();
+      });
+
+      $ans.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          checkAnswer();
+        }
+      });
+
+      $reset.addEventListener('click', reset);
+
+      document.addEventListener('DOMContentLoaded', function() {
+        $ans.focus();
+      });
+    </script>
+  </body>
+</html>
