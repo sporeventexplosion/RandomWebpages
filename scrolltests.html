@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Scroll Tests</title>
+    <style>
+      body {
+        height: 800vh;
+      }
+      .disp {
+        position: fixed;
+        padding: 32px;
+        background-color: #ddd;
+        will-change: transform;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="disp">
+      Hello!
+    </div>
+    <script>
+      const d = document.querySelector('.disp');
+      const a = () => {
+        d.style.transform = `translate(${window.scrollY / 5}px, 0)`;
+        requestAnimationFrame(a);
+      }
+      requestAnimationFrame(a);
+    </script>
+  </body>
+</html>
