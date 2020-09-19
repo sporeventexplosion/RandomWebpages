@@ -189,7 +189,12 @@
       this.mode = modes[0].id;
       this.original = modes[0].id;
       this.isViewingOriginal = false;
+      this.viewOriginal = this.viewOriginal.bind(this);
       this.disableViewOriginal = this.disableViewOriginal.bind(this);
+    }
+    viewOriginal() {
+      this.handleChange(this.original);
+      this.isViewingOriginal = true;
     }
     disableViewOriginal() {
       if (this.isViewingOriginal) {
@@ -200,13 +205,12 @@
     build() {
       const controlName = getStringId();
       document.addEventListener('mouseup', this.disableViewOriginal);
+      document.addEventListener('touchend', this.disableViewOriginal);
       document.addEventListener('blur', this.disableViewOriginal);
       this.$el = e('div', {class: 'mode-selector'},
         e('button', {
-          onMousedown: () => {
-            this.handleChange(this.original);
-            this.isViewingOriginal = true;
-          },
+          onMousedown: this.viewOriginal,
+          onTouchstart: this.viewOriginal,
         }, 'View original'),
         this.modes.map(
           ({id, name}, i) => {
@@ -232,8 +236,9 @@
       return this.$el;
     }
     unbuild() {
-      document.removeEventListener('mouseup', this.onMouseup);
-      document.removeEventListener('blur', this.onMouseup);
+      document.removeEventListener('mouseup', this.disableViewOriginal);
+      document.removeEventListener('touchend', this.disableViewOriginal);
+      document.removeEventListener('blur', this.disableViewOriginal);
     }
   }
   const getParagraphNodes = (paragraph) => Array.from(
@@ -260,13 +265,16 @@
     }
     build() {
       document.addEventListener('mouseup', this.disableShowHidden);
+      document.addEventListener('touchend', this.disableShowHidden);
       document.addEventListener('blur', this.disableShowHidden);
       this.$el = e('div', {class: 'paragraph-list'});
       this.$el.addEventListener('mousedown', (e) => this.showHidden(e.target));
+      this.$el.addEventListener('touchstart', (e) => this.showHidden(e.target));
       return this.$el;
     }
     unbuild() {
       document.removeEventListener('mouseup', this.disableShowHidden);
+      document.removeEventListener('touchend', this.disableShowHidden);
       document.removeEventListener('blur', this.disableShowHidden);
       this.shownFragments.clear();
     }
