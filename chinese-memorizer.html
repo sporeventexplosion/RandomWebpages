@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0">
+    <title>Chinese Memorizer</title>
+    <style>
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: sans-serif;
+}
+.input-area,
+.paragraph-list {
+  font-family: 'PingFang SC Regular', 'SimHei', sans-serif;
+}
+.input-area {
+  font-size: 1.5em;
+  width: 100%;
+  height: 75vh;
+  resize: none;
+  line-height: 200%;
+}
+.mode-selector {
+  padding: 16px;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+}
+.mode-selector > div {
+  display: inline-block;
+  padding-right: 16px;
+}
+.paragraph-list {
+  font-size: 1.5em;
+  text-indent: 2em;
+  min-height: 100vh;
+  cursor: default;
+}
+.paragraph-list > p {
+  margin-bottom: 0.25em;
+  line-height: 160%;
+}
+.s-hidden {
+  color: #999;
+}
+.s-showable {
+  color: #03a;
+}
+.s-shown {
+  color: #800!important;
+}
+    </style>
+    <script src="chinese-memorizer.js"></script>
+  </head>
+  <body></body>
+</html>
