@@ -32,14 +32,31 @@
     }
     return str;
   };
+  const [__setKorean, onKorean, removeOnKorean] = (() => {
+    const set = new Set();
+    const onKorean = (fn) => {
+      set.add(fn);
+    };
+    const removeOnKorean = (fn) => {
+      set.delete(fn);
+    };
+    const setKorean = () => {
+      for (const handler of set) {
+        handler();
+      }
+    };
+    return [setKorean, onKorean, removeOnKorean];
+  })();
+  window.korean = __setKorean;
 
 /**
   * Escape code types
   * <Esc>n.text
   * <Esc>n,text
   * <Esc>n:m,text
+  * <Esc>n:m.textprompt
   */
-  const tokenizeParagraph = function*(str) {
+  const tokenizeParagraph = function* (str) {
     let start = 0;
     let escape = false;
     for (let i = 0; i < str.length; i++) {
@@ -82,15 +99,24 @@
           }
           i += mstr.length;
           const m = parseInt(mstr);
-          if (m > n || str[i] !== ',') {
+          const submode = str[i]
+          if ((submode !== '.' && submode !== ',') || (submode === ',' && m > n)) {
             throw new TypeError('Unsupported escape code');
           }
           i++;
           const type = 'partial';
-          const actual = str.slice(i, i + n);
-          const value = actual.slice(0, m);
-          i += n;
-          yield {type, value, actual};
+          if (submode === ',') {
+            const actual = str.slice(i, i + n);
+            const value = actual.slice(0, m);
+            i += n;
+            yield {type, value, actual};
+          } else {
+            const actual = str.slice(i, i + n);
+            i += n;
+            const value = str.slice(i, i + m);
+            i += m;
+            yield {type, value, actual};
+          }
         }
         start = i;
         escape = false;
@@ -108,7 +134,7 @@
   };
   window.tp = tokenizeParagraph;
 
-  const stringParityIter = function*(str, parity) {
+  const stringParityIter = function* (str, parity) {
     let i = 0;
     for (const ch of str) {
       const n = ch.codePointAt(0);
@@ -129,6 +155,61 @@
   };
 
   const CJK_RUN_REGEX = /[\u4e00-\u9fff]+/g;
+  const HANGUL_S_RUN_REGEX = /[\ua300-\ud7a3]+/g;
+  const KOREAN_SENTENCE_END_REGEX = /[.!?](?:\r?\n)*/g;
+
+  const koreanWordIter = function* (text, resetByLine = true) {
+    // we need to create a copy of the regex so the state of multiple generators don't clash
+    const regex = new RegExp(HANGUL_S_RUN_REGEX);
+    let i = 0;
+    let pos = 0;
+    let lastNewline = -1;
+    let match;
+    while (match = regex.exec(text)) {
+      if (match.index > pos) {
+        const frag = text.slice(pos, match.index);
+        yield [-1, frag];
+        if (frag.indexOf('\n') !== -1) {
+          // reset counter upon encountering newline
+          i = 0;
+        }
+      }
+      yield [i, match[0]];
+      pos = regex.lastIndex;
+      i++;
+    }
+    if (pos < text.length) {
+      yield [-1, text.slice(pos)];
+    }
+  };
+
+  const koreanSentenceIter = function* (text) {
+    const regex = new RegExp(KOREAN_SENTENCE_END_REGEX)
+    let pos = 0;
+    while (regex.exec(text)) {
+      yield text.slice(pos, regex.lastIndex);
+      pos = regex.lastIndex;
+    }
+    if (pos < text.length) {
+      yield text.slice(pos);
+    }
+  };
+
+
+  const koreanTransformBy = function* (fn, iter) {
+    for (const [index, text] of iter) {
+      if (index === -1) {
+        yield text;
+      } else {
+        yield fn(text, index);
+      }
+    }
+  };
+
+  var KOREAN_LETTERS = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+  var koreanGetFirstLetter = text => KOREAN_LETTERS[Math.floor((text.codePointAt(0)-44032)/588)];
+
+  const toRunLengthEscape = (text) => '\u001b' + text.length.toString() + ',' + text;
 
   const transformText = (mode, text) => {
     switch (mode) {
@@ -149,11 +230,33 @@
           }
         });
       case 'run-first-and-length':
-        return text.replace(CJK_RUN_REGEX, match => match[0] + (match.length > 1 ? `\u001b${match.length - 1},${match.slice(1)}` : ''));
+        return text.replace(CJK_RUN_REGEX, match => match[0] + (match.length > 1 ? toRunLengthEscape(match.slice(1)) : ''));
       case 'run-first':
         return text.replace(CJK_RUN_REGEX, match => `\u001b${match.length}:1,${match}`);
       case 'run-length':
-        return text.replace(CJK_RUN_REGEX, match => '\u001b' + match.length.toString() + ',' + match);
+        return text.replace(CJK_RUN_REGEX, match => toRunLengthEscape(match));
+      case 'ko-keep-0':
+      case 'ko-keep-1': {
+        const parity = mode === 'ko-keep-0' ? 0 : 1;
+        return collectString(koreanTransformBy((match, i) => i % 2 === parity ? match : toRunLengthEscape(match), koreanWordIter(text)));
+      }
+      case 'ko-first-syllable-of-word-and-length':
+        return collectString(koreanTransformBy(match => match[0] + (match.length > 1 ? toRunLengthEscape(match.slice(1)) : ''), koreanWordIter(text)));
+      case 'ko-first-letter-of-word-and-length':
+        return collectString(koreanTransformBy(match => {
+          const prompt = koreanGetFirstLetter(match) + (match.length > 1 ? match.length.toString() : '');
+          return `\u001b${match.length}:${prompt.length}.${match}${prompt}`
+        }, koreanWordIter(text)));
+      case 'ko-first-letter-of-word':
+        return collectString(koreanTransformBy(match => `\u001b${match.length}:1.${match}${koreanGetFirstLetter(match)}`, koreanWordIter(text)));
+      case 'ko-word-length':
+        return collectString(koreanTransformBy(match => toRunLengthEscape(match), koreanWordIter(text, false)));
+      case 'ko-first-word-of-sentence':
+        return collectString(function* (){
+          for (const sentence of koreanSentenceIter(text)) {
+            yield* koreanTransformBy((match, i) => i === 0 ? match : `\u001b${match.length}:1.${match}*`, koreanWordIter(sentence));
+          }
+        }());
       default:
         throw new TypeError(`Invalid mode ${mode}`);
     }
@@ -170,6 +273,17 @@
     {id: 'run-length', name: 'Run length'},
   ];
 
+  const KOREAN_MODES = [
+    {id: 'original', name: 'Original'},
+    {id: 'ko-keep-0', name: 'Change even to length'},
+    {id: 'ko-keep-1', name: 'Change odd to length'},
+    {id: 'ko-first-syllable-of-word-and-length', name: 'First syllable of word and length'},
+    {id: 'ko-first-letter-of-word-and-length', name: 'First letter of word and length'},
+    {id: 'ko-first-letter-of-word', name: 'First letter of word'},
+    {id: 'ko-word-length', name: 'Word length'},
+    {id: 'ko-first-word-of-sentence', name: 'First word of sentence'},
+  ];
+
   const getStringId = (() => {
     const prefix = 'a-'
     let i = 0;
@@ -184,6 +298,7 @@
     constructor(modes, handleChange) {
       super();
       this.$el = null;
+      this.$options = null;
       this.modes = modes;
       this.handleChange = handleChange;
       this.mode = modes[0].id;
@@ -191,6 +306,8 @@
       this.isViewingOriginal = false;
       this.viewOriginal = this.viewOriginal.bind(this);
       this.disableViewOriginal = this.disableViewOriginal.bind(this);
+      this.toKorean = this.toKorean.bind(this);
+      this.isKorean = false;
     }
     viewOriginal() {
       this.handleChange(this.original);
@@ -202,35 +319,59 @@
         this.isViewingOriginal = false;
       }
     }
+    toKorean() {
+      if (this.isKorean) {
+        return;
+      }
+      this.isKorean = true;
+
+      this.modes = KOREAN_MODES;
+      this.mode = this.modes[0].id;
+      this.original = this.modes[0].id;
+      const $next = this.$options.length >= 1
+        ? this.$options[this.$options.length - 1].nextSibling 
+        : null;
+      this.$options.forEach($x => $x.remove());
+      const $nextOptions = this.getRadioOptions();
+      $nextOptions.forEach($x => this.$el.insertBefore($x, $next));
+      this.isViewingOriginal = false;
+      this.handleChange(this.mode);
+    }
+    getRadioOptions() {
+      const controlName = getStringId();
+      return this.modes.map(
+        ({id, name}, i) => {
+          const optionName = getStringId();
+          return e('div', null,
+            e('input', {
+              type: 'radio',
+              id: optionName,
+              name: controlName,
+              value: id,
+              checked: i === 0,
+              onInput: () => {
+                this.mode = id;
+                this.handleChange(id);
+              },
+            }),
+            e('label', {for: optionName}, name),
+          );
+        }
+      );
+    }
     build() {
       const controlName = getStringId();
       document.addEventListener('mouseup', this.disableViewOriginal);
       document.addEventListener('touchend', this.disableViewOriginal);
       document.addEventListener('blur', this.disableViewOriginal);
+      onKorean(this.toKorean);
+      this.$options = this.getRadioOptions(),
       this.$el = e('div', {class: 'mode-selector'},
         e('button', {
           onMousedown: this.viewOriginal,
           onTouchstart: this.viewOriginal,
         }, 'View original'),
-        this.modes.map(
-          ({id, name}, i) => {
-            const optionName = getStringId();
-            return e('div', null,
-              e('input', {
-                type: 'radio',
-                id: optionName,
-                name: controlName,
-                value: id,
-                checked: i === 0,
-                onInput: () => {
-                  this.mode = id;
-                  this.handleChange(id);
-                },
-              }),
-              e('label', {for: optionName}, name),
-            );
-          }
-        )
+        this.$options,
       );
       this.handleChange(this.modes[0].id);
       return this.$el;
@@ -239,6 +380,9 @@
       document.removeEventListener('mouseup', this.disableViewOriginal);
       document.removeEventListener('touchend', this.disableViewOriginal);
       document.removeEventListener('blur', this.disableViewOriginal);
+      removeOnKorean(this.toKorean);
+      this.$el = null;
+      this.$options = null;
     }
   }
   const getParagraphNodes = (paragraph) => Array.from(
@@ -277,6 +421,7 @@
       document.removeEventListener('touchend', this.disableShowHidden);
       document.removeEventListener('blur', this.disableShowHidden);
       this.shownFragments.clear();
+      this.$el = null;
     }
     showHidden($frag) {
       if ($frag instanceof HTMLSpanElement && typeof $frag.dataset.actual === 'string') {
@@ -296,7 +441,8 @@
       $node.textContent = '';
       getParagraphNodes(text).forEach($x => $node.appendChild(toNode($x)));
     }
-    update(paragraphs) {
+    update(rawParagraphs) {
+      const paragraphs = rawParagraphs.filter(p => !/^\s?$/.test(p));
       let i;
       for (i = 0; i < paragraphs.length; i++) {
         const text = paragraphs[i];
@@ -334,7 +480,7 @@
 
       this.$el = e('div', null,
         e('h1', null, 'Chinese Memorizer'),
-        e('textarea', {autofocus: true, class: 'input-area', onInput: (e) => this.handleInput(e.target.value)}),
+        e('textarea', {autofocus: true, spellcheck: 'false', class: 'input-area', onInput: (e) => this.handleInput(e.target.value)}),
         $ms,
         $pl,
       );
@@ -343,6 +489,7 @@
     unbuild() {
       this.$$paragraphList.unbuild();
       this.$$modeSelector.unbuild();
+      this.$el = null;
     }
     handleInput(value) {
       this.text = value;
