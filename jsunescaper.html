@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>String Unescape</title>
+  </head>
+  <body>
+    <h1>Unescape Strings as in JavaScript</h1>
+    <div>
+      <textarea id="t"></textarea>
+    </div>
+    <div id="r" style="background-color:#eee;margin:0.5em 0;white-space:pre;font-family:monospace;padding:0.5em"></div>
+    <div id="err" style="background-color:#eee;margin:0.5em 0;white-space:pre;font-family:monospace;padding:0.5em;color:#c00"></div>
+    <button id="convert">Unescape</button>
+    <script>
+function isHex(char) {
+  const cc = char.charCodeAt(0);
+
+  return (cc >= 0x30 && cc <= 0x39) || (cc >= 0x41 && cc <= 0x46) || (cc >= 0x61 && cc <= 0x66);
+}
+function unescapeString(str) {
+  const replacements = {
+    '0': '\0',
+    'b': '\b',
+    'f': '\f',
+    'n': '\n',
+    'r': '\r',
+    't': '\t',
+    'v': '\v',
+    '\'': '\'',
+    '"': '"',
+    '\\': '\\'
+  };
+  const backslash = 0x5c;
+  let ret = "";
+
+  let lastAdd = 0; // The last time a segment of unescaped string has been added to ret
+  let lastEscapeEnd = 0; // The end of the last escaped sequence
+  let lastNonEscape = 0; // The last "ordinary" non escaped-character processed
+
+  for (let i = 0; i < str.length; i++) {
+    const cc = str.charCodeAt(i);
+
+    if (cc === backslash) {
+
+      // If the string ends, we have an error
+      if (i + 1 < str.length) {
+        const nextChar = str.charAt(i + 1);
+
+        if (typeof replacements[nextChar] === "string") {
+          ret += replacements[nextChar];
+          i++;
+        }
+        else if (nextChar === 'x') {
+          if (i + 3 < str.length) {
+
+            // Check that it is valid hexadecimal
+            for (let j = 0; j < 2; j++) {
+              if (!isHex(str.charAt(i + j + 2))) {
+                throw SyntaxError('Invalid Latin-1 hex escape sequence at position ' + i);
+              }
+            }
+            ret += String.fromCharCode(parseInt(str.substr(i + 2, 2), 16));
+            i += 3;
+          }
+          else {
+            throw SyntaxError('Unexpected end of string after position ' + i);
+          }
+        }
+        else if (nextChar === 'u') {
+          // Code point escape sequence
+          if (i + 4 < str.length && str.charAt(i + 2) === '{') {
+            let j = 0;
+            findSeq: {
+              for (; j < str.length - i - 3; j++) {
+                const c = str.charAt(i + j + 3);
+
+                if (c === '}') {
+                  break findSeq;
+                }
+                if (!isHex(c)) {
+                  throw SyntaxError('Invalid Unicode code point hex escape sequence at position ' + i);
+                }
+              }
+              throw SyntaxError('Unexpected end of string in Unicode code point hex escape sequence at position ' + i);
+            }
+
+            ret += String.fromCodePoint(parseInt(str.substr(i + 3, j), 16));
+
+            i += j + 3;
+          }
+          // Unicode char code escape sequence
+          else if (i + 5 < str.length && isHex(str.charAt(i + 2))) {
+            // Test that the remaining three chars are hex
+            for (let j = 0; j < 3; j++) {
+              if (!isHex(str.charAt(i + j + 3))) {
+                throw SyntaxError('Invalid Unicode hex escape sequence at position ' + i);
+              }
+            }
+
+            ret += String.fromCharCode(parseInt(str.substr(i + 2, 4), 16));
+            i += 5;
+          }
+          else {
+            throw SyntaxError('Invalid Unicode escape sequence at position ' + i);
+          }
+        }
+        else {
+          throw SyntaxError('Invalid escape sequence at position ' + i);
+        }
+      }
+      else {
+        throw SyntaxError('Unexpected end of string after position ' + i);
+      }
+    }
+    else {
+      ret += str.charAt(i);
+      lastNonEscape = i;
+    }
+  }
+  return ret;
+}
+
+(function() {
+  const t = document.getElementById('t');
+  const r = document.getElementById('r');
+  const e = document.getElementById('err');
+  const c = document.getElementById('convert');
+
+  c.addEventListener('click', function() {
+    try {
+      r.textContent = unescapeString(t.value);
+      err.textContent = '';
+    }
+    catch (ex) {
+      e.textContent = 'Error: ' + ex.message;
+    }
+  });
+
+}());
+    </script>
+  </body>
+</html>

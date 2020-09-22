@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epilepsy Alert</title>
+  </head>
+  <body>
+    <script>
+      // var a = 0;
+      function c() {
+        return Math.floor(Math.random() * 256);
+      }
+      function b() {
+        document.body.style.backgroundColor = `rgb(${c()}, ${c()}, ${c()})`;
+        // if (a > 1) {
+        //   document.body.style.backgroundColor = '#fff';
+        // }
+        // else {
+        //   document.body.style.backgroundColor = '#000';
+        // }
+        // a = (a + 1) % 4;
+        requestAnimationFrame(b);
+      }
+      requestAnimationFrame(b);
+    </script>
+  </body>
+</html>
