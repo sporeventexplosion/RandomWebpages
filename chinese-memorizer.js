@@ -428,12 +428,15 @@
       this.$el = null;
     }
     showHidden(e) {
-      const $frag = e.target;
-      this.disableShowHidden();
-      if ($frag instanceof HTMLSpanElement && typeof $frag.dataset.actual === 'string') {
-        this.shownFragments.add($frag);
-        $frag.textContent = $frag.dataset.actual;
-        $frag.classList.add('s-shown');
+      if (this.shownFragments.size === 0) {
+        const $frag = e.target;
+        if ($frag instanceof HTMLSpanElement && typeof $frag.dataset.actual === 'string') {
+          this.shownFragments.add($frag);
+          $frag.textContent = $frag.dataset.actual;
+          $frag.classList.add('s-shown');
+        }
+      } else {
+        this.disableShowHidden();
       }
     }
     onTouchStart(e) {
