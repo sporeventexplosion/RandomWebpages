@@ -402,32 +402,54 @@
     constructor() {
       super();
       this.$el = null;
+      this.isTouch = false;
       this.nodes = [];
       this.showHidden = this.showHidden.bind(this);
+      this.onTouchStart = this.onTouchStart.bind(this);
+      this.onMouseDown = this.onMouseDown.bind(this);
+      this.onDocumentMouseUp = this.onDocumentMouseUp.bind(this);
       this.disableShowHidden = this.disableShowHidden.bind(this);
       this.shownFragments = new Set();
     }
     build() {
-      document.addEventListener('mouseup', this.disableShowHidden);
-      document.addEventListener('touchend', this.disableShowHidden);
       document.addEventListener('blur', this.disableShowHidden);
+      document.addEventListener('mousedown', this.disableShowHidden);
+      document.addEventListener('mouseup', this.onDocumentMouseUp);
       this.$el = e('div', {class: 'paragraph-list'});
-      this.$el.addEventListener('mousedown', (e) => this.showHidden(e.target));
-      this.$el.addEventListener('touchstart', (e) => this.showHidden(e.target));
+      this.$el.addEventListener('mousedown', (e) => this.onMouseDown(e));
+      this.$el.addEventListener('touchstart', (e) => this.onTouchStart(e));
       return this.$el;
     }
     unbuild() {
-      document.removeEventListener('mouseup', this.disableShowHidden);
-      document.removeEventListener('touchend', this.disableShowHidden);
       document.removeEventListener('blur', this.disableShowHidden);
+      document.removeEventListener('mousedown', this.disableShowHidden);
+      document.removeEventListener('mouseup', this.onDocumentMouseUp);
       this.shownFragments.clear();
       this.$el = null;
     }
-    showHidden($frag) {
+    showHidden(e) {
+      const $frag = e.target;
+      this.disableShowHidden();
       if ($frag instanceof HTMLSpanElement && typeof $frag.dataset.actual === 'string') {
         this.shownFragments.add($frag);
         $frag.textContent = $frag.dataset.actual;
         $frag.classList.add('s-shown');
+      }
+    }
+    onTouchStart(e) {
+      e.stopPropagation();
+      this.isTouch = true;
+      this.showHidden(e);
+    }
+    onMouseDown(e) {
+      e.stopPropagation();
+      if (!this.isTouch) {
+        this.showHidden(e);
+      }
+    }
+    onDocumentMouseUp(e) {
+      if (!this.isTouch) {
+        this.disableShowHidden();
       }
     }
     disableShowHidden() {
