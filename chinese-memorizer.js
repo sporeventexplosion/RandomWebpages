@@ -233,6 +233,14 @@
         return text.replace(CJK_RUN_REGEX, match => match[0] + (match.length > 1 ? toRunLengthEscape(match.slice(1)) : ''));
       case 'run-first':
         return text.replace(CJK_RUN_REGEX, match => `\u001b${match.length}:1,${match}`);
+      case 'run-last': {
+        return text.replace(CJK_RUN_REGEX, match => {
+          if (match.length < 2) {
+            return match;
+          }
+          return toRunLengthEscape(match.slice(0, -1)) + match[match.length - 1];
+        });
+      }
       case 'run-length':
         return text.replace(CJK_RUN_REGEX, match => toRunLengthEscape(match));
       case 'ko-keep-0':
@@ -270,6 +278,7 @@
     {id: 'run-first-last', name: 'First and last character of run'},
     {id: 'run-first-and-length', name: 'First character of run and length'},
     {id: 'run-first', name: 'First character of run'},
+    {id: 'run-last', name: 'Last character of run'},
     {id: 'run-length', name: 'Run length'},
   ];
 
