@@ -11,6 +11,7 @@
 }
 body {
   font-family: sans-serif;
+  margin-bottom: 128px;
 }
 .input-area,
 .paragraph-list {
@@ -27,6 +28,11 @@ body {
   padding: 16px;
   border: 1px solid #aaa;
   border-radius: 8px;
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  background-color: #fff;
 }
 .mode-selector > div {
   display: inline-block;
@@ -35,7 +41,7 @@ body {
 .paragraph-list {
   font-size: 1.5em;
   text-indent: 2em;
-  min-height: 100vh;
+  min-height: calc(100vh - 128px);
   cursor: default;
 }
 h1,
