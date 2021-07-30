@@ -233,12 +233,32 @@
         return text.replace(CJK_RUN_REGEX, match => match[0] + (match.length > 1 ? toRunLengthEscape(match.slice(1)) : ''));
       case 'run-first':
         return text.replace(CJK_RUN_REGEX, match => `\u001b${match.length}:1,${match}`);
-      case 'run-last': {
+      case 'run-last-and-length': {
         return text.replace(CJK_RUN_REGEX, match => {
           if (match.length < 2) {
             return match;
           }
           return toRunLengthEscape(match.slice(0, -1)) + match[match.length - 1];
+        });
+      }
+      case 'keep-0-runs':
+      case 'keep-1-runs':
+      {
+        let parity = mode === 'keep-0-runs';
+        const split = text.split('\n');
+        let nextNewlinePos = 0;
+        return text.replace(CJK_RUN_REGEX, (match, pos) => {
+          if (nextNewlinePos !== -1 && pos >= nextNewlinePos) {
+            parity = mode === 'keep-0-runs';
+            nextNewlinePos = text.indexOf('\n', pos);
+          }
+          const oldParity = parity;
+          parity = !parity;
+          if (oldParity) {
+            return match;
+          } else {
+            return toRunLengthEscape(match);
+          }
         });
       }
       case 'run-length':
@@ -278,7 +298,9 @@
     {id: 'run-first-last', name: 'First and last character of run'},
     {id: 'run-first-and-length', name: 'First character of run and length'},
     {id: 'run-first', name: 'First character of run'},
-    {id: 'run-last', name: 'Last character of run'},
+    {id: 'run-last-and-length', name: 'Last character of run and length'},
+    {id: 'keep-0-runs', name: 'Skip even runs'},
+    {id: 'keep-1-runs', name: 'Skip odd runs'},
     {id: 'run-length', name: 'Run length'},
   ];
 
