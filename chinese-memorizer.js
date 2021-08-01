@@ -266,7 +266,12 @@
       case 'ko-keep-0':
       case 'ko-keep-1': {
         const parity = mode === 'ko-keep-0' ? 0 : 1;
-        return collectString(koreanTransformBy((match, i) => i % 2 === parity ? match : toRunLengthEscape(match), koreanWordIter(text)));
+        return collectString(koreanTransformBy(
+          (match, i) => i % 2 === parity
+            ? match
+            : `\u001b${match.length}.${match}`,
+          koreanWordIter(text)
+        ));
       }
       case 'ko-first-syllable-of-word-and-length':
         return collectString(koreanTransformBy(match => match[0] + (match.length > 1 ? toRunLengthEscape(match.slice(1)) : ''), koreanWordIter(text)));
@@ -306,8 +311,8 @@
 
   const KOREAN_MODES = [
     {id: 'original', name: 'Original'},
-    {id: 'ko-keep-0', name: 'Change even to length'},
-    {id: 'ko-keep-1', name: 'Change odd to length'},
+    {id: 'ko-keep-0', name: 'Skip even'},
+    {id: 'ko-keep-1', name: 'Skip odd'},
     {id: 'ko-first-syllable-of-word-and-length', name: 'First syllable of word and length'},
     {id: 'ko-first-letter-of-word-and-length', name: 'First letter of word and length'},
     {id: 'ko-first-letter-of-word', name: 'First letter of word'},
